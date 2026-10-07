@@ -1,0 +1,58 @@
+AG ENERGIES QUOTATION STUDIO - WINDOWS QUICK START
+================================================
+
+1. INSTALL PYTHON
+   Get Python for Windows from https://www.python.org/downloads/windows/
+   Python 3.12 or 3.13 is recommended for the bundled dependency versions.
+   In the installer, tick "Add python.exe to PATH", then click Install Now.
+   You only need to do this once.
+
+2. EXTRACT THE APP
+   Right-click AG-Energies-Quotation-Studio.zip and choose "Extract All".
+   Choose a folder on your Desktop. Do not run the app inside the ZIP viewer.
+   Keep app.py, requirements.txt, static, templates and the other files together.
+
+3. START IT
+   Open the extracted "AG Energies Quotation Studio" folder.
+   Double-click "Start Windows.bat".
+   A terminal window opens. The first start installs the required packages,
+   so keep your Internet connection on and wait for installation to finish.
+   Your browser then opens the application. Keep the terminal window open
+   while using the app. Later starts work offline.
+
+4. ADD YOUR PRODUCTS
+   Select Item library, then Add item.
+   Enter your item details, VAT eligibility and available prices.
+   Each item has Retail, Installer and Wholesale prices, separately in TSh/USD.
+   Leave an unavailable price blank. Currency conversion is not automatic.
+
+5. MAKE A QUOTATION
+   Click New quotation, enter the customer, choose a currency and price level,
+   and type an item name to see suggestions from your own database.
+   Choose VAT on top, VAT included or no VAT; adjust the rate as needed.
+   Save & preview PDF saves the quotation and opens its PDF for printing/sharing.
+
+WHERE YOUR DATA GOES
+   Your real Windows Desktop (including a redirected OneDrive Desktop) gets
+   a separate folder named "AG Energies". It contains:
+     ag_energies.sqlite3 - item library, saved quotations and company details
+     Quotations         - saved quotation PDFs
+     Backups            - database backups and full backup ZIPs
+   Closing the application does not delete these files.
+   Use Back up workspace regularly and copy the ZIP to another drive.
+
+STARTING AGAIN
+   Double-click Start Windows.bat each time you want to use the app.
+   If the terminal is already running, use the browser tab instead of starting
+   another copy. Press Ctrl+C in the terminal to stop the application.
+
+IF SOMETHING DOES NOT WORK
+   "Python was not found": install Python with Add python.exe to PATH enabled.
+   The browser did not open: type http://127.0.0.1:8765 into the address bar
+   on the same Windows PC, with the app's terminal window still open.
+   "Address already in use": another copy may already be running; use it,
+   or close its terminal window before starting this copy.
+   A package installation error: keep the terminal window open and copy the
+   exact error message for troubleshooting. Do not delete your business data.
+
+Read README.md for complete usage, backups and recovery instructions.
