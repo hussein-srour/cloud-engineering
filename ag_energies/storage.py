@@ -267,6 +267,7 @@ class Store:
         for row in rows:
             q = json.loads(row['payload'])
             results.append({k: q.get(k) for k in ('id', 'number', 'title', 'client_name', 'currency', 'status', 'issue_date', 'valid_until')} |
+                           {'document_type': q.get('document_type', 'quotation')} |
                            {'total': q['totals']['total'], 'updated_at': row['updated_at']})
         return results
 
@@ -295,7 +296,9 @@ class Store:
         if quote['valid_until'] < quote['issue_date']:
             raise ValidationError('Valid until must be on or after the issue date.')
         quote.update({k: payload.get(k, default) for k, default in
-                      [('currency', 'TSH'), ('price_level', 'retail'), ('vat_mode', 'exclusive'), ('status', 'Draft'), ('theme', 'signature')]})
+                      [('currency', 'TSH'), ('price_level', 'retail'), ('vat_mode', 'exclusive'), ('status', 'Draft'), ('theme', 'signature'), ('document_type', 'quotation')]})
+        if quote['document_type'] not in ('quotation', 'boq'):
+            raise ValidationError('Choose Quotation or Bill of quantities.')
         if quote['price_level'] not in PRICE_LEVELS:
             raise ValidationError('Choose a valid price level.')
         if quote['status'] not in ('Draft', 'Sent', 'Accepted', 'Declined'):

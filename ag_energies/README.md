@@ -1,10 +1,10 @@
-# AG Energies Quotation Studio
+# AG Energies Quotations
 
 A professional Python quotation application for **AG Energies Company Limited**. Runs locally in your browser, with a Python backend and a SQLite database. No account or subscription is required. After the first dependency installation it works offline; there are no external fonts, scripts or web services.
 
 ## Start on your computer
 
-1. Install **Python 3.10 or newer** from https://www.python.org/downloads/ (on Windows, tick **Add Python to PATH**).
+1. Install **Python 3.10–3.14** from https://www.python.org/downloads/ (on Windows, tick **Add Python to PATH**).
 2. Extract the downloaded ZIP to your Desktop. Keep all the application files together.
 3. On Windows, double-click **Start Windows.bat**. On macOS, run **Start Mac.command**. The first start downloads dependencies; allow it to finish.
 4. The app opens in your browser. Keep the terminal window open while using it. Press **Ctrl+C** in that window to stop.
@@ -40,15 +40,15 @@ To choose a different location, use `python app.py --data-dir "path/to/folder"` 
 
 ## Your daily workflow
 
-1. **Item library → Add item**: save a name, SKU, description, unit, category, VAT eligibility and prices. Each item has **Retail, Installer and Wholesale** price levels, each with separate **TSh and USD** fields. At least one price is required; leave unavailable prices blank.
-2. **New quotation**: enter the customer and dates, then select a currency and price level. Type an item name or SKU in the search box to see local catalogue suggestions. Use the arrow keys and Enter, or click a suggestion.
+1. **Items & pricing → Add item**: save a name, SKU, description, unit, category, VAT eligibility and prices. Each item has **Retail, Installer and Wholesale** price levels, each with separate **TSh and USD** fields. At least one price is required; leave unavailable prices blank.
+2. **New document**: choose Quotation or Bill of quantities (BOQ), enter the customer and dates, then select a currency and internal pricing category. Pricing categories are never printed on customer documents. Type an item name or SKU in the search box to see local catalogue suggestions. Use the arrow keys and Enter, or click a suggestion.
 3. Adjust quantities and prices, remove lines or add custom items. Changing currency or price level prompts before replacing catalogue prices. There is **no automatic exchange-rate conversion**. Missing prices must be filled in explicitly. Review custom-item prices when changing currency.
 4. Choose **VAT on top**, **VAT included**, or **No VAT**. Each line has a VAT checkbox for mixed taxable and exempt items. The initial VAT rate is **18%**, and it can be changed for each quotation. Confirm the rate and tax treatment appropriate to the transaction.
-5. Optional percentage discount, notes, payment/delivery terms, status and either **Signature** or **Minimal** PDF design.
+5. Optional percentage discount, notes, payment/delivery terms, status and either **Standard** or **Monochrome** PDF design.
 6. Click **Save & preview PDF**. A sequential `AG-YYYY-0001` number is assigned, the quotation is saved in the database, and its branded A4 PDF is created in the Quotations folder. Download/share/print from the browser's PDF viewer. Save with Ctrl+S or Cmd+S in the editor. Changes are saved when you click Save; the editor warns before leaving unsaved work.
 7. Reopen, copy, edit or delete saved quotations from the Quotations page. Statuses are labels you manage manually; choosing Sent does not send any email.
 
-Item changes and deletions do not alter previously saved quotations. Saved quotation lines are snapshots. Company information is captured when a quotation is saved; existing PDFs retain it until that quotation is edited and saved again. The supplied logo has been cleaned onto a transparent background for use on white pages; replace it at **Company & settings → Choose logo** if you prefer the exact original image.
+Item changes and deletions do not alter previously saved quotations. Saved quotation lines are snapshots. Company information is captured when a quotation is saved; the information remains unchanged when an older PDF is regenerated using the current layout. Editing and saving a document captures current company details. The supplied logo has been cleaned onto a transparent background for use on white pages; replace it at **Company settings → Choose logo** if you prefer the exact original image.
 
 ## Calculation rules
 
@@ -75,3 +75,9 @@ On Windows, use `.venv\Scripts\python.exe` instead. The application uses Flask, 
 The application and dependencies are installed in the extracted application folder. Your business data stays separately in the Desktop folder. Updating the application does not require overwriting that data folder. Python virtual environments are machine-specific; don't transfer a `.venv` folder from another computer.
 
 The bundled DejaVu fonts are distributed under the license in `static/fonts/LICENSE.txt`. Generated branding follows the supplied AG Energies logo. Company address, TIN and VRN are prefilled exactly from the provided details; optional email, phone and website are left empty.
+
+## Updating from the first version
+
+Stop the running app before updating. Extract the new ZIP into a new application folder and use **Start Windows.bat**. Keep your existing **Desktop/AG Energies/** data folder; the update reads the same database and does not replace it. Old PDFs are regenerated in the revised layout when you open them, with their saved customer details, prices and company information.
+
+Use the launcher instead of VS Code’s global Python Run button. If developing in VS Code, select `.venv\Scripts\python.exe` as the interpreter after the launcher has installed dependencies. The dependency versions include prebuilt Windows packages for Python 3.14.

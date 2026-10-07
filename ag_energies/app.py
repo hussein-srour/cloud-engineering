@@ -1,19 +1,28 @@
-"""AG Energies local quotation studio. Run `python app.py` to open it."""
+"""AG Energies quotations and bills of quantities. Run the included launcher."""
 from __future__ import annotations
 
 import argparse
 import os
 import secrets
+import sys
 import threading
 import webbrowser
 from pathlib import Path
 
-from flask import Flask, jsonify, render_template, request, send_file
-from PIL import Image, UnidentifiedImageError
-from waitress import serve
+try:
+    from flask import Flask, jsonify, render_template, request, send_file
+    from PIL import Image, UnidentifiedImageError
+    from waitress import serve
+except ModuleNotFoundError as error:
+    print(f'Missing application dependency: {error.name}.\n'
+          'On Windows, double-click Start Windows.bat to install and start the app.\n'
+          'In VS Code, select .venv\\Scripts\\python.exe as the Python interpreter.\n'
+          'For manual setup: python -m pip install -r requirements.txt', file=sys.stderr)
+    raise SystemExit(2) from None
 
 from documents import build_pdf
 from storage import DEFAULT_TERMS, PRICE_LEVELS, Store, ValidationError, calculate, desktop_folder
+PDF_LAYOUT_VERSION = '2026-10-refined-v1'
 
 
 def create_app(data_dir=None):
@@ -73,7 +82,9 @@ def create_app(data_dir=None):
 
     def pdf(quote):
         target = store.folder / 'Quotations' / (quote['number'] + '.pdf')
-        return build_pdf(quote, quote['company_snapshot'], current_logo(), target)
+        build_pdf(quote, quote['company_snapshot'], current_logo(), target)
+        target.with_suffix('.layout').write_text(PDF_LAYOUT_VERSION, encoding='utf-8')
+        return target
 
     @app.get('/')
     def index():
@@ -158,13 +169,15 @@ def create_app(data_dir=None):
         store.backup()
         store.delete_quote(quote_id)
         (store.folder / 'Quotations' / (quote['number'] + '.pdf')).unlink(missing_ok=True)
+        (store.folder / 'Quotations' / (quote['number'] + '.layout')).unlink(missing_ok=True)
         return jsonify(ok=True)
 
     @app.get('/api/quotes/<int:quote_id>/pdf')
     def get_pdf(quote_id):
         quote = store.quote(quote_id)
         target = store.folder / 'Quotations' / (quote['number'] + '.pdf')
-        if not target.exists():
+        version_file = target.with_suffix('.layout')
+        if not target.exists() or not version_file.exists() or version_file.read_text(encoding='utf-8') != PDF_LAYOUT_VERSION:
             pdf(quote)
         return send_file(target, mimetype='application/pdf', as_attachment=request.args.get('download') == '1', download_name=target.name)
 
@@ -190,14 +203,14 @@ def create_app(data_dir=None):
 
 
 def main():
-    parser = argparse.ArgumentParser(description='AG Energies Quotation Studio')
+    parser = argparse.ArgumentParser(description='AG Energies Quotations')
     parser.add_argument('--data-dir', help='Override the Desktop/AG Energies storage folder')
     parser.add_argument('--port', type=int, default=8765)
     parser.add_argument('--no-browser', action='store_true')
     args = parser.parse_args()
     app = create_app(args.data_dir)
     address = f'http://127.0.0.1:{args.port}'
-    print(f'\nAG Energies Quotation Studio\nData folder: {app.extensions["store"].folder}\nOpen: {address}\nKeep this window open. Press Ctrl+C to stop.\n', flush=True)
+    print(f'\nAG Energies Quotations\nData folder: {app.extensions["store"].folder}\nOpen: {address}\nKeep this window open. Press Ctrl+C to stop.\n', flush=True)
     if not args.no_browser:
         threading.Timer(1.5, lambda: webbrowser.open(address)).start()
     serve(app, host='127.0.0.1', port=args.port, threads=4)

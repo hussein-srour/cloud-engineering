@@ -1,47 +1,210 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="csrf-token" content="{{ csrf_token }}">
-  <title>AG Energies · Quotation Studio</title>
+  <title>AG Energies · Quotations</title>
   <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/static/app.css">
   <script src="/static/app.js" defer></script>
 </head>
 <body>
 <aside class="sidebar">
-  <a class="brand" href="#overview"><span class="brand-mark">AG<span>ENERGIES</span></span><span class="brand-sub">QUOTATION STUDIO</span></a>
-  <span class="nav-label">WORKSPACE</span>
+  <a class="brand" href="#quotes" data-page="quotes" aria-label="AG Energies quotations">
+    <img class="company-logo" src="/api/logo" alt="AG Energies company logo">
+    <span class="brand-name">AG Energies</span>
+    <span class="brand-sub">Quotations</span>
+  </a>
   <nav aria-label="Main navigation">
-    <button class="nav-button active" data-page="overview"><span class="nav-icon">◫</span>Overview</button>
-    <button class="nav-button" data-page="quotes"><span class="nav-icon">▤</span>Quotations<span id="nav-count" class="nav-count">0</span></button>
-    <button class="nav-button" data-page="items"><span class="nav-icon">▦</span>Item library</button>
-    <button class="nav-button" data-page="settings"><span class="nav-icon">⚙</span>Company & settings</button>
+    <button class="nav-button active" data-page="quotes">Quotations <span id="nav-count" class="nav-count">0</span></button>
+    <button class="nav-button" data-page="items">Items & pricing</button>
+    <button class="nav-button" data-page="overview">Summary</button>
+    <button class="nav-button" data-page="settings">Company settings</button>
   </nav>
-  <div class="sidebar-bottom"><div class="local-status"><i></i> Local workspace</div><p>Your items and quotations.<br>Stored on your computer.</p><a href="/api/backup" class="backup-link">↓ Back up workspace</a><div class="company-mini"><span>AG</span><div>AG Energies<small>Dar es Salaam, Tanzania</small></div></div></div>
+  <div class="sidebar-bottom">
+    <span class="local-status">Saved on this computer</span>
+    <a href="/api/backup" class="backup-link">Download backup</a>
+  </div>
 </aside>
 <div class="workspace">
-  <header class="topbar"><div class="breadcrumb">Workspace <span>/</span> <strong id="breadcrumb">Overview</strong></div><div class="topbar-right"><span class="offline-badge"><i></i> Local storage</span><span class="avatar">AG</span></div></header>
+  <header class="topbar">
+    <div class="breadcrumb">AG Energies <span>/</span> <strong id="breadcrumb">Quotations</strong></div>
+    <span class="offline-badge">Local database</span>
+  </header>
   <main>
-    <section id="page-overview" class="page">
-      <div class="page-heading"><div><p class="eyebrow">YOUR QUOTATION WORKSPACE</p><h1>A brighter way to do business.</h1><p>Create clear, confident quotations. Keep every detail in one place.</p></div><button class="button primary new-quote">＋ New quotation</button></div>
-      <div class="hero-card"><div class="hero-copy"><span class="hero-tag">AG ENERGIES COMPANY LIMITED</span><h2>Professional quotes.<br>Personal service.</h2><p>From your item library to a beautifully branded PDF,<br>prepare your next quotation in minutes.</p><button class="button light new-quote">Create a quotation <span>↗</span></button></div><div class="hero-art"><div class="logo-tile"><img class="company-logo" src="/api/logo" alt="AG Energies company logo"></div><span class="hero-caption">ENERGY FOR WHAT COMES NEXT</span></div></div>
-      <div class="stats"><article><span class="stat-icon">▤</span><div><span class="stat-label">Total quotations</span><strong id="stat-quotes">0</strong><small>All your saved quotations</small></div></article><article><span class="stat-icon green">✓</span><div><span class="stat-label">Accepted quotations</span><strong id="stat-accepted">0</strong><small>Ready for the next step</small></div></article><article><span class="stat-icon blue">▦</span><div><span class="stat-label">Items in your library</span><strong id="stat-items">0</strong><small>Ready to add to any quote</small></div></article></div>
-      <div class="overview-grid"><article class="panel"><div class="panel-head"><div><h3>Recent quotations</h3><p>Your latest work, at a glance.</p></div><button class="text-button" data-page="quotes">View all →</button></div><div id="recent-quotes"></div></article><article class="panel quick-start"><span class="eyebrow">A SIMPLE WORKFLOW</span><h3>From item to quotation</h3><div class="step"><span>01</span><div><b>Build your item library</b><p>Save retail, installer and wholesale prices.</p></div></div><div class="step"><span>02</span><div><b>Make it your own</b><p>Choose currency, price level and VAT treatment.</p></div></div><div class="step"><span>03</span><div><b>Share a polished PDF</b><p>Your company details, beautifully presented.</p></div></div><button class="button secondary" id="overview-add-item">＋ Add your first item</button></article></div>
+    <section id="page-overview" class="page hidden">
+      <div class="page-heading">
+        <div><h1>Summary</h1><p>Saved documents and catalogue.</p></div>
+        <button class="button primary new-quote">New document</button>
+      </div>
+      <div class="stats">
+        <article><span class="stat-label">Saved documents</span><strong id="stat-quotes">0</strong></article>
+        <article><span class="stat-label">Accepted</span><strong id="stat-accepted">0</strong></article>
+        <article><span class="stat-label">Catalogue items</span><strong id="stat-items">0</strong></article>
+      </div>
+      <article class="panel">
+        <div class="panel-head"><h3>Recent documents</h3><button class="text-button" data-page="quotes">View all</button></div>
+        <div id="recent-quotes"></div>
+      </article>
+      <div class="overview-actions"><button class="text-button" id="overview-add-item">Add catalogue item</button></div>
     </section>
-    <section id="page-quotes" class="page hidden"><div class="page-heading"><div><p class="eyebrow">YOUR BUSINESS, ON RECORD</p><h1>Quotations</h1><p>Prepare, revisit and share your quotations.</p></div><button class="button primary new-quote">＋ New quotation</button></div><div class="panel"><div class="list-toolbar"><label class="search-box"><span>⌕</span><input id="quote-search" placeholder="Search quotation number or customer…" aria-label="Search quotations"></label><select id="quote-status-filter" aria-label="Filter quotation status"><option value="">All statuses</option><option>Draft</option><option>Sent</option><option>Accepted</option><option>Declined</option></select></div><div id="quote-list"></div></div></section>
-    <section id="page-items" class="page hidden"><div class="page-heading"><div><p class="eyebrow">YOUR LOCAL CATALOGUE</p><h1>Item library</h1><p>One item. Three price levels. Both currencies.</p></div><button class="button primary" id="add-item">＋ Add item</button></div><div class="panel"><div class="list-toolbar"><label class="search-box"><span>⌕</span><input id="item-search" placeholder="Search name, SKU or category…" aria-label="Search items"></label><div class="helper">Prices are stored separately · no automatic currency conversion</div></div><div id="item-list"></div></div></section>
-    <section id="page-editor" class="page hidden"><div class="page-heading"><div><button class="text-button back-quotes">← Back to quotations</button><h1 id="editor-heading">New quotation</h1><p id="editor-caption">A few details, a lasting impression.</p></div><div class="button-group"><button class="button secondary" id="save-quote">Save quotation</button><button class="button primary" id="save-preview">Save & preview PDF ↗</button></div></div>
-      <div class="editor-grid"><div class="editor-main"><article class="panel form-panel"><div class="section-title"><span>01</span><h3>Customer & quotation details</h3></div><div class="form-grid"><label class="span-2">Customer / company name <span class="required">*</span><input id="q-client_name" autocomplete="organization" placeholder="Who are you preparing this for?" maxlength="500"></label><label>Contact email<input id="q-client_email" type="email" placeholder="Optional"></label><label>Contact phone<input id="q-client_phone" placeholder="Optional"></label><label class="span-2">Customer address<textarea id="q-client_address" rows="2" placeholder="Street, city and country"></textarea></label><label class="span-2">Project / quotation title<input id="q-title" placeholder="e.g. Solar installation — office building" maxlength="500"></label><label>Issue date<input id="q-issue_date" type="date"></label><label>Valid until<input id="q-valid_until" type="date"></label></div></article>
-      <article class="panel form-panel"><div class="section-title"><span>02</span><h3>Quotation items</h3><span id="line-count" class="subtle-count">0 items</span></div><div class="catalogue-search"><label class="search-box"><span>⌕</span><input id="catalogue-search" placeholder="Start typing an item name or SKU…" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="suggestions" aria-autocomplete="list"></label><div id="suggestions" class="suggestions hidden" role="listbox"></div></div><div class="helper catalogue-help">Select an item to fill its description, price and VAT eligibility.</div><div id="quote-lines"></div><button class="text-button add-custom" id="add-custom">＋ Add a custom item</button></article>
-      <article class="panel form-panel"><div class="section-title"><span>03</span><h3>Notes & terms</h3></div><div class="form-grid"><label class="span-2">Notes<textarea id="q-notes" rows="3" placeholder="Anything your customer should know…" maxlength="4000"></textarea></label><label class="span-2">Terms & conditions<textarea id="q-terms" rows="3" maxlength="4000"></textarea></label></div></article></div>
-      <aside class="editor-aside"><article class="panel form-panel"><h3>Quote preferences</h3><label>Currency<select id="q-currency"><option value="TSH">TSh · Tanzanian shilling</option><option value="USD">USD · US dollar</option></select></label><label>Price level<select id="q-price_level"><option value="retail">Retail</option><option value="installer">Installer</option><option value="wholesale">Wholesale</option></select></label><label>VAT treatment<select id="q-vat_mode"><option value="exclusive">VAT on top of prices</option><option value="inclusive">VAT included in prices</option><option value="none">No VAT</option></select></label><div class="form-grid"><label>VAT rate (%)<input id="q-vat_rate" type="number" min="0" max="100" step="0.01" value="18"></label><label>Discount (%)<input id="q-discount" type="number" min="0" max="100" step="0.01" value="0"></label></div><p class="helper">VAT applies only to rows marked taxable. Set the rate appropriate for this quotation.</p><label>Quotation status<select id="q-status"><option>Draft</option><option>Sent</option><option>Accepted</option><option>Declined</option></select></label><label>PDF design<select id="q-theme"><option value="signature">Signature · Navy & green</option><option value="minimal">Minimal · Clean white</option></select></label></article><article class="panel summary-panel"><div class="summary-heading"><h3>Quotation summary</h3><span id="summary-currency">TSh</span></div><div id="quote-summary"></div><p id="vat-explanation" class="helper"></p><div id="calculation-error" class="inline-error hidden" role="alert"></div></article><div class="save-note"><span>◉</span><p>Saved to your local Desktop folder.<br>PDFs are created when you save.</p></div></aside></div>
+
+    <section id="page-quotes" class="page">
+      <div class="page-heading">
+        <div><h1>Quotations</h1><p>Quotations and bills of quantities.</p></div>
+        <button class="button primary new-quote">New document</button>
+      </div>
+      <div class="panel">
+        <div class="list-toolbar">
+          <label class="search-box"><span class="search-symbol" aria-hidden="true"></span><input id="quote-search" placeholder="Search number, customer or project" aria-label="Search quotations"></label>
+          <select id="quote-status-filter" aria-label="Filter quotation status"><option value="">All statuses</option><option>Draft</option><option>Sent</option><option>Accepted</option><option>Declined</option></select>
+        </div>
+        <div id="quote-list"></div>
+      </div>
     </section>
-    <section id="page-settings" class="page hidden"><div class="page-heading"><div><p class="eyebrow">THE DETAILS THAT MATTER</p><h1>Company & settings</h1><p>Your identity, on every quotation.</p></div></div><div class="settings-grid"><form id="company-form" class="panel form-panel"><h3>Company information</h3><div class="form-grid"><label class="span-2">Company name<input name="name" required maxlength="500"></label><label class="span-2">Street address<textarea name="address" rows="2" maxlength="500"></textarea></label><label class="span-2">City / postal address<input name="location" maxlength="500"></label><label>TIN<input name="tin" maxlength="500"></label><label>VRN<input name="vrn" maxlength="500"></label><label>Email<input name="email" type="email" maxlength="500"></label><label>Phone<input name="phone" maxlength="500"></label><label class="span-2">Website<input name="website" maxlength="500" placeholder="Optional"></label></div><p class="helper">Changes apply to new quotations and quotations you edit. Existing saved PDFs keep their original details.</p><button class="button primary" type="submit">Save company details</button></form><div><article class="panel form-panel"><h3>Your brand</h3><div class="settings-logo"><img class="company-logo" src="/api/logo" alt="AG Energies logo"></div><p class="helper">A transparent PNG looks best on the white quotation background.</p><label class="button secondary upload-button">Choose logo<input id="logo-upload" type="file" accept="image/png,image/jpeg,image/webp" hidden></label></article><article class="panel form-panel storage-panel"><h3>Local storage</h3><span class="local-status dark"><i></i> Stored on your computer</span><p id="data-path" class="data-path"></p><p class="helper">Your SQLite database, exported PDFs and backups live here. Back up this folder regularly.</p><a class="button secondary" href="/api/backup">↓ Download full backup</a><p class="helper">No cloud account or subscription required. No data is sent to a remote server.</p></article></div></div></section>
-    <footer class="app-footer"><span>AG Energies Quotation Studio</span><span>Made for your business. Stored locally.</span></footer>
+
+    <section id="page-items" class="page hidden">
+      <div class="page-heading">
+        <div><h1>Items & pricing</h1><p>Products, services and saved prices.</p></div>
+        <button class="button primary" id="add-item">Add item</button>
+      </div>
+      <div class="panel">
+        <div class="list-toolbar">
+          <label class="search-box"><span class="search-symbol" aria-hidden="true"></span><input id="item-search" placeholder="Search name, SKU or category" aria-label="Search items"></label>
+          <span class="helper">TSh and USD prices are entered separately.</span>
+        </div>
+        <div id="item-list"></div>
+      </div>
+    </section>
+
+    <section id="page-editor" class="page hidden">
+      <div class="page-heading editor-heading">
+        <div><button class="text-button back-quotes">← Quotations</button><h1 id="editor-heading">New document</h1><p id="editor-caption">Enter customer details and add items.</p></div>
+        <div class="button-group"><button class="button secondary" id="save-quote">Save</button><button class="button primary" id="save-preview">Save & preview PDF</button></div>
+      </div>
+      <div class="editor-grid">
+        <div class="editor-main">
+          <article class="panel form-panel">
+            <div class="section-title"><h3>Customer & project</h3></div>
+            <div class="form-grid">
+              <label class="span-2">Customer / company <span class="required">*</span><input id="q-client_name" autocomplete="organization" placeholder="Customer name" maxlength="500"></label>
+              <label>Email<input id="q-client_email" type="email" placeholder="Optional"></label>
+              <label>Phone<input id="q-client_phone" placeholder="Optional"></label>
+              <label class="span-2">Address<textarea id="q-client_address" rows="2" placeholder="Street, city and country"></textarea></label>
+              <label class="span-2">Project / reference<input id="q-title" placeholder="Project name or reference" maxlength="500"></label>
+              <label>Issue date<input id="q-issue_date" type="date"></label>
+              <label>Valid until<input id="q-valid_until" type="date"></label>
+            </div>
+          </article>
+          <article class="panel form-panel items-panel">
+            <div class="section-title"><h3>Items</h3><span id="line-count" class="subtle-count">0 items</span></div>
+            <div class="catalogue-search">
+              <label class="search-box"><span class="search-symbol" aria-hidden="true"></span><input id="catalogue-search" placeholder="Search saved items by name or SKU" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="suggestions" aria-autocomplete="list"></label>
+              <div id="suggestions" class="suggestions hidden" role="listbox"></div>
+            </div>
+            <p class="helper catalogue-help">Select a saved item or add a custom line.</p>
+            <div id="quote-lines"></div>
+            <button class="text-button add-custom" id="add-custom">Add custom item</button>
+          </article>
+          <article class="panel form-panel">
+            <div class="section-title"><h3>Notes & terms</h3></div>
+            <div class="form-grid">
+              <label class="span-2">Notes<textarea id="q-notes" rows="3" placeholder="Optional customer notes" maxlength="4000"></textarea></label>
+              <label class="span-2">Terms & conditions<textarea id="q-terms" rows="3" maxlength="4000"></textarea></label>
+            </div>
+          </article>
+        </div>
+        <aside class="editor-aside">
+          <article class="panel form-panel">
+            <h3>Document settings</h3>
+            <label>Document<select id="q-document_type"><option value="quotation">Quotation</option><option value="boq">Bill of quantities (BOQ)</option></select></label>
+            <label>Currency<select id="q-currency"><option value="TSH">TSh — Tanzanian shilling</option><option value="USD">USD — US dollar</option></select></label>
+            <label>Pricing<select id="q-price_level"><option value="retail">Retail</option><option value="installer">Installer</option><option value="wholesale">Wholesale</option></select></label>
+            <p class="helper internal-pricing-note">For internal pricing only. Not printed.</p>
+            <label>VAT<select id="q-vat_mode"><option value="exclusive">Add VAT to prices</option><option value="inclusive">Prices include VAT</option><option value="none">No VAT</option></select></label>
+            <div class="form-grid">
+              <label>VAT rate (%)<input id="q-vat_rate" type="number" min="0" max="100" step="0.01" value="18"></label>
+              <label>Discount (%)<input id="q-discount" type="number" min="0" max="100" step="0.01" value="0"></label>
+            </div>
+            <p class="helper">VAT applies to taxable items only.</p>
+            <label>Status<select id="q-status"><option>Draft</option><option>Sent</option><option>Accepted</option><option>Declined</option></select></label>
+            <label>PDF style<select id="q-theme"><option value="signature">Standard</option><option value="minimal">Monochrome</option></select></label>
+          </article>
+          <article class="panel summary-panel">
+            <div class="summary-heading"><h3>Totals</h3><span id="summary-currency">TSh</span></div>
+            <div id="quote-summary"></div>
+            <p id="vat-explanation" class="helper"></p>
+            <div id="calculation-error" class="inline-error hidden" role="alert"></div>
+          </article>
+          <p class="save-note">Saved documents and PDFs are kept in your local data folder.</p>
+        </aside>
+      </div>
+    </section>
+
+    <section id="page-settings" class="page hidden">
+      <div class="page-heading"><div><h1>Company settings</h1><p>Company details used on documents.</p></div></div>
+      <div class="settings-grid">
+        <form id="company-form" class="panel form-panel">
+          <h3>Company information</h3>
+          <div class="form-grid">
+            <label class="span-2">Company name<input name="name" required maxlength="500"></label>
+            <label class="span-2">Street address<textarea name="address" rows="2" maxlength="500"></textarea></label>
+            <label class="span-2">City / postal address<input name="location" maxlength="500"></label>
+            <label>TIN<input name="tin" maxlength="500"></label>
+            <label>VRN<input name="vrn" maxlength="500"></label>
+            <label>Email<input name="email" type="email" maxlength="500"></label>
+            <label>Phone<input name="phone" maxlength="500"></label>
+            <label class="span-2">Website<input name="website" maxlength="500" placeholder="Optional"></label>
+          </div>
+          <p class="helper">New documents and edited documents use the updated details. Existing PDFs retain their saved information.</p>
+          <button class="button primary" type="submit">Save company details</button>
+        </form>
+        <div>
+          <article class="panel form-panel">
+            <h3>Company logo</h3>
+            <div class="settings-logo"><img class="company-logo" src="/api/logo" alt="AG Energies logo"></div>
+            <p class="helper">Use a transparent PNG for a clean background.</p>
+            <label class="button secondary upload-button">Choose logo<input id="logo-upload" type="file" accept="image/png,image/jpeg,image/webp" hidden></label>
+          </article>
+          <article class="panel form-panel storage-panel">
+            <h3>Data & backups</h3>
+            <p class="helper">Database and PDF location</p>
+            <p id="data-path" class="data-path"></p>
+            <a class="button secondary" href="/api/backup">Download backup</a>
+            <p class="helper">Keep a backup in a separate location.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+    <footer class="app-footer"><span>AG Energies · Quotations</span><span>Local storage</span></footer>
   </main>
 </div>
-<dialog id="item-dialog"><form id="item-form"><div class="dialog-head"><div><p class="eyebrow">YOUR ITEM LIBRARY</p><h2 id="item-dialog-title">Add an item</h2></div><button class="icon-button close-dialog" type="button" aria-label="Close item form">×</button></div><div class="dialog-body"><div class="form-grid"><label class="span-2">Item name <span class="required">*</span><input name="name" required maxlength="180" placeholder="e.g. Solar panel 550W"></label><label>SKU / item code<input name="sku" maxlength="80" placeholder="Optional"></label><label>Category<input name="category" maxlength="80" placeholder="e.g. Solar panels"></label><label>Unit<input name="unit" value="pcs" required maxlength="30" placeholder="pcs, meter, hour…"></label><label class="checkbox-label"><input name="taxable" type="checkbox" checked> VAT applies to this item</label><label class="span-2">Description<textarea name="description" maxlength="1000" rows="2" placeholder="Specifications or service details"></textarea></label></div><div class="price-heading"><h3>Three price levels</h3><p>Enter the prices you use. Leave unavailable prices blank.</p></div><div class="price-grid"><article><b>Retail</b><label>TSh<input name="price_retail_tsh" type="number" min="0" step="0.01" placeholder="Not set"></label><label>USD<input name="price_retail_usd" type="number" min="0" step="0.01" placeholder="Not set"></label></article><article><b>Installer</b><label>TSh<input name="price_installer_tsh" type="number" min="0" step="0.01" placeholder="Not set"></label><label>USD<input name="price_installer_usd" type="number" min="0" step="0.01" placeholder="Not set"></label></article><article><b>Wholesale</b><label>TSh<input name="price_wholesale_tsh" type="number" min="0" step="0.01" placeholder="Not set"></label><label>USD<input name="price_wholesale_usd" type="number" min="0" step="0.01" placeholder="Not set"></label></article></div><div id="item-error" class="inline-error hidden" role="alert"></div></div><div class="dialog-footer"><button class="button secondary close-dialog" type="button">Cancel</button><button class="button primary" type="submit">Save item</button></div></form></dialog>
+
+<dialog id="item-dialog">
+  <form id="item-form">
+    <div class="dialog-head"><h2 id="item-dialog-title">Add item</h2><button class="icon-button close-dialog" type="button" aria-label="Close item form">×</button></div>
+    <div class="dialog-body">
+      <div class="form-grid">
+        <label class="span-2">Item name <span class="required">*</span><input name="name" required maxlength="180" placeholder="Item name"></label>
+        <label>SKU / item code<input name="sku" maxlength="80" placeholder="Optional"></label>
+        <label>Category<input name="category" maxlength="80" placeholder="Optional"></label>
+        <label>Unit<input name="unit" value="pcs" required maxlength="30" placeholder="pcs, metre, hour"></label>
+        <label class="checkbox-label"><input name="taxable" type="checkbox" checked> VAT applies</label>
+        <label class="span-2">Description<textarea name="description" maxlength="1000" rows="2" placeholder="Specifications or service details"></textarea></label>
+      </div>
+      <div class="price-heading"><h3>Saved prices</h3><p>Leave prices blank if they are unavailable. Pricing categories are for internal use.</p></div>
+      <div class="price-grid">
+        <article><b>Retail</b><label>TSh<input name="price_retail_tsh" type="number" min="0" step="0.01" placeholder="Not set"></label><label>USD<input name="price_retail_usd" type="number" min="0" step="0.01" placeholder="Not set"></label></article>
+        <article><b>Installer</b><label>TSh<input name="price_installer_tsh" type="number" min="0" step="0.01" placeholder="Not set"></label><label>USD<input name="price_installer_usd" type="number" min="0" step="0.01" placeholder="Not set"></label></article>
+        <article><b>Wholesale</b><label>TSh<input name="price_wholesale_tsh" type="number" min="0" step="0.01" placeholder="Not set"></label><label>USD<input name="price_wholesale_usd" type="number" min="0" step="0.01" placeholder="Not set"></label></article>
+      </div>
+      <div id="item-error" class="inline-error hidden" role="alert"></div>
+    </div>
+    <div class="dialog-footer"><button class="button secondary close-dialog" type="button">Cancel</button><button class="button primary" type="submit">Save item</button></div>
+  </form>
+</dialog>
 <div id="toast" role="status" class="toast hidden"></div>
 <div id="global-error" class="global-error hidden" role="alert"></div>
-</body></html>
+</body>
+</html>

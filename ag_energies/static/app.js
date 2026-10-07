@@ -2,11 +2,12 @@
 const $ = (s, root = document) => root.querySelector(s);
 const $$ = (s, root = document) => [...root.querySelectorAll(s)];
 const token = $('meta[name="csrf-token"]').content;
-const state = {items: [], quotes: [], company: {}, page: 'overview', quote: null, dirty: false, itemId: null, suggestions: [], suggestionIndex: -1, calculationVersion: 0};
-const fields = ['title', 'client_name', 'client_address', 'client_email', 'client_phone', 'issue_date', 'valid_until', 'currency', 'price_level', 'vat_rate', 'vat_mode', 'discount', 'notes', 'terms', 'status', 'theme'];
+const state = {items: [], quotes: [], company: {}, page: 'quotes', quote: null, dirty: false, itemId: null, suggestions: [], suggestionIndex: -1, calculationVersion: 0};
+const fields = ['title', 'client_name', 'client_address', 'client_email', 'client_phone', 'issue_date', 'valid_until', 'currency', 'price_level', 'vat_rate', 'vat_mode', 'discount', 'notes', 'terms', 'status', 'theme', 'document_type'];
 const escapeHTML = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const formatMoney = value => Number(value || 0).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
 const currencyLabel = value => value === 'USD' ? 'USD' : 'TSh';
+const documentLabel = value => value === 'boq' ? 'BOQ' : 'Quotation';
 let toastTimer, errorTimer, calculationTimer;
 
 function toast(message) {
@@ -37,10 +38,10 @@ async function api(path, options = {}) {
   return result;
 }
 function empty(title, message, button = '') {
-  return `<div class="empty-state"><div class="empty-icon">▤</div><h3>${escapeHTML(title)}</h3><p>${escapeHTML(message)}</p>${button}</div>`;
+  return `<div class="empty-state"><h3>${escapeHTML(title)}</h3><p>${escapeHTML(message)}</p>${button}</div>`;
 }
 function statusBadge(value) { return `<span class="status ${escapeHTML(value.toLowerCase())}">${escapeHTML(value)}</span>`; }
-function canLeave() { return !state.dirty || confirm('This quotation has unsaved changes. Leave without saving?'); }
+function canLeave() { return !state.dirty || confirm('This document has unsaved changes. Leave without saving?'); }
 function navigate(page, force = false) {
   if (!force && state.page === 'editor' && page !== 'editor' && !canLeave()) return false;
   if (state.page === 'editor' && page !== 'editor') state.dirty = false;
@@ -48,7 +49,7 @@ function navigate(page, force = false) {
   $$('.page').forEach(el => el.classList.add('hidden'));
   $(`#page-${page}`).classList.remove('hidden');
   $$('.nav-button').forEach(el => el.classList.toggle('active', el.dataset.page === (page === 'editor' ? 'quotes' : page)));
-  $('#breadcrumb').textContent = ({overview:'Overview', quotes:'Quotations', items:'Item library', settings:'Company & settings', editor:'Quotation editor'})[page];
+  $('#breadcrumb').textContent = ({overview:'Summary', quotes:'Quotations / BOQ', items:'Items', settings:'Company', editor:'Document editor'})[page];
   window.scrollTo({top:0, behavior:'smooth'});
   return true;
 }
@@ -70,19 +71,19 @@ async function refresh() {
 function renderRecent() {
   $('#recent-quotes').innerHTML = state.quotes.length ? state.quotes.slice(0,4).map(q =>
     `<button class="recent-row" data-open="${q.id}" aria-label="Open ${escapeHTML(q.number)}"><span>▤</span><div class="recent-details"><b>${escapeHTML(q.client_name)}</b><small>${escapeHTML(q.number)} · ${escapeHTML(q.issue_date)}</small></div><div class="recent-right"><strong>${currencyLabel(q.currency)} ${formatMoney(q.total)}</strong>${statusBadge(q.status)}</div></button>`).join('') :
-    empty('Your first quotation starts here', 'Add items, choose a customer, and turn the details into a professional PDF.', '<button class="button secondary new-quote">Create a quotation →</button>');
+    empty('No saved documents', 'Create a quotation or bill of quantities.', '<button class="button secondary new-quote">New document</button>');
 }
 function renderQuotes() {
   const query = $('#quote-search').value.toLowerCase();
   const status = $('#quote-status-filter').value;
   const quotes = state.quotes.filter(q => (!status || q.status === status) && `${q.number} ${q.client_name} ${q.title}`.toLowerCase().includes(query));
-  $('#quote-list').innerHTML = quotes.length ? `<div class="table-wrap"><table><thead><tr><th>Quotation</th><th>Customer</th><th>Issue date</th><th>Amount</th><th>Status</th><th>Actions</th></tr></thead><tbody>${quotes.map(q => `<tr><td><button class="text-button" data-open="${q.id}">${escapeHTML(q.number)}</button><small>${escapeHTML(q.title)}</small></td><td>${escapeHTML(q.client_name)}</td><td>${escapeHTML(q.issue_date)}</td><td class="amount">${currencyLabel(q.currency)} ${formatMoney(q.total)}</td><td>${statusBadge(q.status)}</td><td><div class="table-actions"><button class="text-button" data-open="${q.id}">Edit</button><a class="text-button" href="/api/quotes/${q.id}/pdf" target="_blank" rel="noopener">PDF ↗</a><button class="text-button" data-duplicate="${q.id}">Copy</button><button class="text-button danger-text" data-delete-quote="${q.id}">Delete</button></div></td></tr>`).join('')}</tbody></table></div>` : empty(state.quotes.length ? 'No matching quotations' : 'No quotations yet', state.quotes.length ? 'Try another customer name or status.' : 'Create your first quotation. It will be saved here automatically.', '<button class="button primary new-quote">＋ New quotation</button>');
+  $('#quote-list').innerHTML = quotes.length ? `<div class="table-wrap"><table><thead><tr><th>Reference</th><th>Customer</th><th>Issue date</th><th>Amount</th><th>Status</th><th>Actions</th></tr></thead><tbody>${quotes.map(q => `<tr><td><button class="text-button" data-open="${q.id}">${escapeHTML(q.number)}</button><small>${documentLabel(q.document_type)}${q.title ? ' · ' + escapeHTML(q.title) : ''}</small></td><td>${escapeHTML(q.client_name)}</td><td>${escapeHTML(q.issue_date)}</td><td class="amount">${currencyLabel(q.currency)} ${formatMoney(q.total)}</td><td>${statusBadge(q.status)}</td><td><div class="table-actions"><button class="text-button" data-open="${q.id}">Edit</button><a class="text-button" href="/api/quotes/${q.id}/pdf" target="_blank" rel="noopener">PDF</a><button class="text-button" data-duplicate="${q.id}">Copy</button><button class="text-button danger-text" data-delete-quote="${q.id}">Delete</button></div></td></tr>`).join('')}</tbody></table></div>` : empty(state.quotes.length ? 'No matching documents' : 'No saved documents', state.quotes.length ? 'Try another search or status.' : 'Create a quotation or bill of quantities.', '<button class="button primary new-quote">New document</button>');
 }
 function renderItems() {
   const query = $('#item-search').value.toLowerCase();
   const items = state.items.filter(i => `${i.name} ${i.sku} ${i.category}`.toLowerCase().includes(query));
   const cell = (i, level) => `<span>${i[`price_${level}_tsh`] === null ? '—' : 'TSh ' + formatMoney(i[`price_${level}_tsh`])}</span><small>${i[`price_${level}_usd`] === null ? 'USD not set' : 'USD ' + formatMoney(i[`price_${level}_usd`])}</small>`;
-  $('#item-list').innerHTML = items.length ? `<div class="table-wrap"><table><thead><tr><th>Item</th><th>Retail</th><th>Installer</th><th>Wholesale</th><th>VAT</th><th>Actions</th></tr></thead><tbody>${items.map(i => `<tr><td><b>${escapeHTML(i.name)}</b><small>${escapeHTML([i.sku, i.category, i.unit].filter(Boolean).join(' · '))}</small></td><td class="amount">${cell(i, 'retail')}</td><td class="amount">${cell(i, 'installer')}</td><td class="amount">${cell(i, 'wholesale')}</td><td><span class="status ${i.taxable ? 'accepted' : ''}">${i.taxable ? 'Taxable' : 'No VAT'}</span></td><td><div class="table-actions"><button class="text-button" data-edit-item="${i.id}">Edit</button><button class="text-button danger-text" data-delete-item="${i.id}">Delete</button></div></td></tr>`).join('')}</tbody></table></div>` : empty(state.items.length ? 'No matching items' : 'A library built around your business', state.items.length ? 'Try another name, SKU or category.' : 'Save your products and services once. Find them instantly while preparing a quote.', '<button class="button primary" data-add-item>＋ Add your first item</button>');
+  $('#item-list').innerHTML = items.length ? `<div class="table-wrap"><table><thead><tr><th>Item</th><th>Retail</th><th>Installer</th><th>Wholesale</th><th>VAT</th><th>Actions</th></tr></thead><tbody>${items.map(i => `<tr><td><b>${escapeHTML(i.name)}</b><small>${escapeHTML([i.sku, i.category, i.unit].filter(Boolean).join(' · '))}</small></td><td class="amount">${cell(i, 'retail')}</td><td class="amount">${cell(i, 'installer')}</td><td class="amount">${cell(i, 'wholesale')}</td><td><span class="status ${i.taxable ? 'accepted' : ''}">${i.taxable ? 'Taxable' : 'No VAT'}</span></td><td><div class="table-actions"><button class="text-button" data-edit-item="${i.id}">Edit</button><button class="text-button danger-text" data-delete-item="${i.id}">Delete</button></div></td></tr>`).join('')}</tbody></table></div>` : empty(state.items.length ? 'No matching items' : 'No saved items', state.items.length ? 'Try another name, SKU or category.' : 'Add products or services to use in your documents.', '<button class="button primary" data-add-item>Add item</button>');
 }
 function localDate(value) {
   const d = value || new Date();
@@ -91,14 +92,15 @@ function localDate(value) {
 function newQuote() {
   if (state.page === 'editor' && !canLeave()) return;
   const end = new Date(); end.setDate(end.getDate()+14);
-  fillQuote({title:'', client_name:'', client_address:'', client_email:'', client_phone:'', issue_date:localDate(), valid_until:localDate(end), currency:'TSH', price_level:'retail', vat_rate:state.defaults.vat_rate, vat_mode:'exclusive', discount:'0', notes:'', terms:state.defaults.terms, status:'Draft', theme:'signature', lines:[]});
+  fillQuote({title:'', client_name:'', client_address:'', client_email:'', client_phone:'', issue_date:localDate(), valid_until:localDate(end), currency:'TSH', price_level:'retail', vat_rate:state.defaults.vat_rate, vat_mode:'exclusive', discount:'0', notes:'', terms:state.defaults.terms, status:'Draft', theme:'signature', document_type:'quotation', lines:[]});
 }
 function fillQuote(quote) {
   state.quote = structuredClone(quote);
+  quote.document_type = state.quote.document_type = quote.document_type || 'quotation';
   state.dirty = false;
   for (const field of fields) $(`#q-${field}`).value = quote[field] ?? '';
-  $('#editor-heading').textContent = quote.number || 'New quotation';
-  $('#editor-caption').textContent = quote.id ? 'Update the details, then save a fresh PDF.' : 'A few details, a lasting impression.';
+  $('#editor-heading').textContent = quote.number || 'New document';
+  $('#editor-caption').textContent = quote.id ? 'Edit document' : 'Quotation or bill of quantities';
   $('#catalogue-search').value = '';
   closeSuggestions();
   renderLines(); updateTotals(); navigate('editor', true);
@@ -120,7 +122,7 @@ function addCatalogueItem(item) {
 function renderLines() {
   const lines = state.quote.lines;
   $('#line-count').textContent = `${lines.length} item${lines.length === 1 ? '' : 's'}`;
-  $('#quote-lines').innerHTML = lines.length ? lines.map((line,index) => `<div class="quote-line" data-index="${index}"><div class="line-top"><span class="line-index">${String(index+1).padStart(2,'0')}</span><input data-field="name" value="${escapeHTML(line.name)}" placeholder="Item name" maxlength="180" aria-label="Item ${index+1} name"><button class="icon-button" data-remove-line="${index}" aria-label="Remove item ${index+1}">×</button></div><div class="line-body"><textarea data-field="description" class="line-description" rows="1" maxlength="1000" placeholder="Description / specifications" aria-label="Item ${index+1} description">${escapeHTML(line.description)}</textarea><div class="line-fields"><label>Quantity<input data-field="quantity" type="number" min="0.001" max="1000000" step="0.001" value="${escapeHTML(line.quantity)}"></label><label>Unit<input data-field="unit" maxlength="30" value="${escapeHTML(line.unit)}"></label><label>Unit price (${currencyLabel($('#q-currency').value)})<input data-field="unit_price" class="${line.unit_price === '' ? 'missing-price' : ''}" type="number" min="0" step="0.01" value="${escapeHTML(line.unit_price)}" placeholder="Enter price"></label><label class="checkbox-label"><input data-field="taxable" type="checkbox" ${line.taxable ? 'checked' : ''}> VAT</label><div class="line-amount"><small>LINE TOTAL</small><span data-line-total="${index}">—</span></div></div>${line.unit_price === '' ? '<p class="row-note">No catalogue price for this selection. Enter a price before saving.</p>' : ''}</div></div>`).join('') : '<div class="empty-lines">Search your item library above, or add a custom item below.</div>';
+  $('#quote-lines').innerHTML = lines.length ? lines.map((line,index) => `<div class="quote-line" data-index="${index}"><div class="line-top"><span class="line-index">${String(index+1).padStart(2,'0')}</span><input data-field="name" value="${escapeHTML(line.name)}" placeholder="Item name" maxlength="180" aria-label="Item ${index+1} name"><button class="icon-button" data-remove-line="${index}" aria-label="Remove item ${index+1}">×</button></div><div class="line-body"><textarea data-field="description" class="line-description" rows="1" maxlength="1000" placeholder="Description / specifications" aria-label="Item ${index+1} description">${escapeHTML(line.description)}</textarea><div class="line-fields"><label>Quantity<input data-field="quantity" type="number" min="0.001" max="1000000" step="0.001" value="${escapeHTML(line.quantity)}"></label><label>Unit<input data-field="unit" maxlength="30" value="${escapeHTML(line.unit)}"></label><label>Unit price<input data-field="unit_price" class="${line.unit_price === '' ? 'missing-price' : ''}" type="number" min="0" step="0.01" value="${escapeHTML(line.unit_price)}" placeholder="Enter price"></label><label class="checkbox-label"><input data-field="taxable" type="checkbox" ${line.taxable ? 'checked' : ''}> VAT</label><div class="line-amount"><small>Amount</small><span data-line-total="${index}">—</span></div></div>${line.unit_price === '' ? '<p class="row-note">No catalogue price for this selection. Enter a price before saving.</p>' : ''}</div></div>`).join('') : '<div class="empty-lines">Search your item library above, or add a custom item below.</div>';
 }
 function queueTotals() {
   state.calculationVersion++;
@@ -192,7 +194,7 @@ async function saveQuote(preview = false) {
     const quote = await api(id ? `/api/quotes/${id}` : '/api/quotes', {method:id ? 'PUT' : 'POST', body:collectQuote()});
     state.quote = quote; state.dirty = false;
     $('#editor-heading').textContent = quote.number;
-    $('#editor-caption').textContent = 'Saved locally. Your PDF is ready to share.';
+    $('#editor-caption').textContent = 'Saved';
     await refresh();
     toast(`${quote.number} saved. PDF created in your Quotations folder.`);
     if (popup) popup.location.href = `/api/quotes/${quote.id}/pdf`;
@@ -328,4 +330,4 @@ window.addEventListener('beforeunload', event => { if (state.dirty) { event.prev
 document.addEventListener('keydown', event => {
   if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's' && state.page === 'editor') { event.preventDefault(); saveQuote(); }
 });
-refresh().catch(error => showError(error.message));
+refresh().then(() => navigate('quotes', true)).catch(error => showError(error.message));

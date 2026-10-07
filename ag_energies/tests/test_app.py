@@ -4,6 +4,7 @@ import sqlite3
 import tempfile
 import unittest
 import zipfile
+from contextlib import closing
 from decimal import Decimal
 from pathlib import Path
 
@@ -144,7 +145,7 @@ class ApplicationTests(unittest.TestCase):
         self.assertIn('Quotations/'+q['number']+'.pdf', archive.namelist())
         restore = Path(self.temp.name) / 'restore.sqlite3'
         restore.write_bytes(archive.read('ag_energies.sqlite3'))
-        with sqlite3.connect(restore) as conn:
+        with closing(sqlite3.connect(restore)) as conn:
             self.assertEqual(conn.execute('SELECT COUNT(*) FROM quotes').fetchone()[0], 1)
         result = self.client.delete(f'/api/quotes/{q["id"]}', headers=self.headers)
         self.assertEqual(result.status_code, 200)
@@ -176,6 +177,28 @@ class ApplicationTests(unittest.TestCase):
             pdf = self.client.get(f'/api/quotes/{result.json["id"]}/pdf')
             self.assertGreater(len(pdf.data), 20000)
             pdf.close()
+
+    def test_document_type_validation_and_legacy_defaults(self):
+        legacy = self.post('/api/quotes', quotation())
+        self.assertEqual(legacy.status_code, 201, legacy.json)
+        self.assertEqual(legacy.json['document_type'], 'quotation')
+        boq = self.post('/api/quotes', quotation(document_type='boq'))
+        self.assertEqual(boq.status_code, 201, boq.json)
+        self.assertEqual(boq.json['document_type'], 'boq')
+        self.assertEqual(self.client.get('/api/quotes').json[0]['document_type'], 'boq')
+        invalid = self.post('/api/quotes', quotation(document_type='invalid'))
+        self.assertEqual(invalid.status_code, 400)
+
+    def test_old_pdf_layout_is_refreshed_without_changing_saved_data(self):
+        quote = self.post('/api/quotes', quotation()).json
+        target = Path(self.temp.name) / 'Quotations' / (quote['number'] + '.pdf')
+        target.write_bytes(b'Old layout placeholder')
+        target.with_suffix('.layout').unlink()
+        with self.client.get(f'/api/quotes/{quote["id"]}/pdf') as response:
+            self.assertEqual(response.status_code, 200)
+            self.assertTrue(response.data.startswith(b'%PDF'))
+        self.assertTrue(target.with_suffix('.layout').is_file())
+        self.assertEqual(self.client.get(f'/api/quotes/{quote["id"]}').json, quote)
 
 
 if __name__ == '__main__':

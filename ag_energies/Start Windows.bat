@@ -1,9 +1,9 @@
 @echo off
 setlocal
 cd /d "%~dp0"
-echo AG Energies Quotation Studio
+echo AG Energies Quotations
 echo.
-if exist ".venv\Scripts\python.exe" goto run
+if exist ".venv\Scripts\python.exe" goto check
 where py >nul 2>nul
 if errorlevel 1 goto pythonfallback
 py -3 -m venv .venv
@@ -16,9 +16,10 @@ if errorlevel 1 goto missing
 echo Installing the application. Internet is needed for this first setup only.
 .venv\Scripts\python.exe -m pip install -r requirements.txt
 if errorlevel 1 goto failed
-:run
-.venv\Scripts\python.exe -c "import flask,reportlab,PIL,waitress" >nul 2>nul
+:check
+.venv\Scripts\python.exe -c "import flask,reportlab,PIL,waitress; assert PIL.__version__ == '12.3.0'" >nul 2>nul
 if errorlevel 1 goto install
+:run
 .venv\Scripts\python.exe app.py
 if errorlevel 1 goto failed
 goto end

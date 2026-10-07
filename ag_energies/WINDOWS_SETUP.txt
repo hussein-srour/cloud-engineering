@@ -3,17 +3,17 @@ AG ENERGIES QUOTATION STUDIO - WINDOWS QUICK START
 
 1. INSTALL PYTHON
    Get Python for Windows from https://www.python.org/downloads/windows/
-   Python 3.12 or 3.13 is recommended for the bundled dependency versions.
+   Python 3.10 through 3.14 is supported by the bundled dependency versions.
    In the installer, tick "Add python.exe to PATH", then click Install Now.
    You only need to do this once.
 
 2. EXTRACT THE APP
-   Right-click AG-Energies-Quotation-Studio.zip and choose "Extract All".
+   Right-click AG-Energies-Quotations.zip and choose "Extract All".
    Choose a folder on your Desktop. Do not run the app inside the ZIP viewer.
    Keep app.py, requirements.txt, static, templates and the other files together.
 
 3. START IT
-   Open the extracted "AG Energies Quotation Studio" folder.
+   Open the extracted "AG Energies Quotations" folder.
    Double-click "Start Windows.bat".
    A terminal window opens. The first start installs the required packages,
    so keep your Internet connection on and wait for installation to finish.
@@ -27,7 +27,8 @@ AG ENERGIES QUOTATION STUDIO - WINDOWS QUICK START
    Leave an unavailable price blank. Currency conversion is not automatic.
 
 5. MAKE A QUOTATION
-   Click New quotation, enter the customer, choose a currency and price level,
+   Click New document, choose Quotation or BOQ, then enter the customer,
+   choose a currency and internal pricing category,
    and type an item name to see suggestions from your own database.
    Choose VAT on top, VAT included or no VAT; adjust the rate as needed.
    Save & preview PDF saves the quotation and opens its PDF for printing/sharing.
@@ -56,3 +57,9 @@ IF SOMETHING DOES NOT WORK
    exact error message for troubleshooting. Do not delete your business data.
 
 Read README.md for complete usage, backups and recovery instructions.
+
+UPDATING AN EXISTING INSTALLATION
+   Close the old app terminal window. Extract this updated ZIP into a new
+   application folder and run Start Windows.bat from that folder. Keep your
+   Desktop/AG Energies data folder; it contains your business database.
+   If you use VS Code, select .venv\Scripts\python.exe as the interpreter.
